@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Thu Hoạch Sao - Đường Đua Tri Thức Lớp 2</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Baloo 2 & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <!-- Supabase JS Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            fun: ['"Baloo 2"', 'cursive', 'sans-serif'],
+            body: ['"Nunito"', 'sans-serif']
+          },
+          boxShadow: {
+            'game-orange': '0 8px 0 #D97706, 0 15px 20px rgba(217, 119, 6, 0.3)',
+            'game-green': '0 8px 0 #15803D, 0 15px 20px rgba(21, 128, 61, 0.3)',
+            'game-rose': '0 8px 0 #BE123C, 0 15px 20px rgba(190, 18, 60, 0.25)',
+            'game-blue': '0 8px 0 #1D4ED8, 0 15px 20px rgba(29, 78, 216, 0.3)',
+            'game-purple': '0 8px 0 #6D28D9, 0 15px 20px rgba(109, 40, 217, 0.3)',
+            'card-soft': '0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #F0F9FF 0%, #E0F2FE 40%, #FEF3C7 100%);
+      min-height: 100vh;
+    }
+    .font-fun {
+      font-family: 'Baloo 2', cursive, sans-serif;
+    }
+    .btn-3d {
+      transition: all 0.12s ease;
+      position: relative;
+    }
+    .btn-3d:active {
+      transform: translateY(6px);
+    }
+    .btn-3d-green {
+      box-shadow: 0 8px 0 #15803D, 0 12px 18px rgba(21, 128, 61, 0.3);
+    }
+    .btn-3d-green:active {
+      box-shadow: 0 2px 0 #15803D, 0 4px 6px rgba(21, 128, 61, 0.3);
+    }
+    .btn-3d-rose {
+      box-shadow: 0 8px 0 #BE123C, 0 12px 18px rgba(190, 18, 60, 0.25);
+    }
+    .btn-3d-rose:active {
+      box-shadow: 0 2px 0 #BE123C, 0 4px 6px rgba(190, 18, 60, 0.25);
+    }
+    .btn-3d-gold {
+      box-shadow: 0 8px 0 #B45309, 0 12px 18px rgba(180, 83, 9, 0.3);
+    }
+    .btn-3d-gold:active {
+      box-shadow: 0 2px 0 #B45309, 0 4px 6px rgba(180, 83, 9, 0.3);
+    }
+
+    @keyframes floatSoft {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1deg); }
+    }
+    .animate-float {
+      animation: floatSoft 3s ease-in-out infinite;
+    }
+
+    @keyframes scorePop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.35) rotate(-3deg); color: #F59E0B; }
+      100% { transform: scale(1); }
+    }
+    .score-animate {
+      animation: scorePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card-selected {
+      border-color: #F59E0B !important;
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+      box-shadow: 0 0 0 4px #FCD34D, 0 10px 15px -3px rgba(245, 158, 11, 0.3) !important;
+      transform: translateY(-2px);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 antialiased">
+
+  <!-- ================= TOP NAV BAR ================= -->
+  <header class="bg-white/85 backdrop-blur-md border-b-4 border-amber-200 sticky top-0 z-40 px-3 sm:px-6 py-2.5 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      <!-- Logo & Tiêu đề -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="openRoleModal()">
+        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-white text-2xl shadow-md shadow-orange-300/40 animate-float">
+          🚀
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-xl sm:text-2xl font-black font-fun tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 leading-none">
+              THU HOẠCH SAO
+            </h1>
+            <span class="hidden md:inline-block px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full border border-amber-300 uppercase">
+              Lớp 2
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span id="navCloudDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="navCloudText" class="text-[11px] font-extrabold text-emerald-600">Đang đồng bộ trực tuyến</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Điều khiển nhanh -->
+      <div class="flex items-center gap-2">
+        <button onclick="openRoleModal()" class="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 hover:border-amber-400 flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-800 shadow-sm active:scale-95 transition">
+          <span id="roleBadgeEmoji">🎮</span>
+          <span id="roleLabel">Đang tải...</span>
+          <i class="fa-solid fa-repeat text-amber-500 text-[11px] ml-0.5"></i>
+        </button>
+
+        <button onclick="toggleSound()" id="soundToggleBtn" class="w-10 h-10 rounded-2xl bg-white border-2 border-slate-200 hover:border-amber-300 flex items-center justify-center text-slate-600 hover:text-amber-500 shadow-sm transition active:scale-90" title="Bật/Tắt âm thanh">
+          <i id="soundIcon" class="fa-solid fa-volume-high text-base"></i>
+        </button>
+
+        <button onclick="openPinModal()" class="px-3.5 py-1.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-fun font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-indigo-300/40 active:scale-95 transition">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Cô Giáo</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col justify-start">
+
+    <!-- 0. SCREEN: WELCOME / CHỌN VAI TRÒ -->
+    <section id="viewRoleSelector" class="hidden my-auto py-8 text-center flex flex-col items-center">
+      <div class="inline-block p-4 bg-white/70 backdrop-blur-xl rounded-full shadow-lg border-4 border-amber-200 mb-4 animate-float">
+        <span class="text-5xl sm:text-6xl">🏁</span>
+      </div>
+      <h2 class="text-3xl sm:text-5xl font-black font-fun text-slate-800 mb-2">
+        CHÀO MỪNG ĐẾN VỚI <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500">ĐƯỜNG ĐUA!</span>
+      </h2>
+      <p class="text-sm sm:text-base font-bold text-slate-500 max-w-lg mb-8">
+        Vui lòng chọn iPad cho từng nhóm hoặc mở màn hình điều hành của Giáo viên
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 w-full max-w-5xl mb-8">
+        <!-- Lion -->
+        <div onclick="selectRole('group_1')" class="cursor-pointer group relative bg-gradient-to-b from-amber-400 to-orange-500 rounded-3xl p-5 sm:p-6 text-white text-center shadow-game-orange border-4 border-yellow-200 transition-all hover:-translate-y-1 active:translate-y-1">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl mb-3 group-hover:scale-110 transition shadow-inner">🦁</div>
+          <span class="text-xs uppercase tracking-wider font-extrabold bg-white/25 px-3 py-0.5 rounded-full inline-block mb-1">IPAD SỐ 1</span>
+          <h3 class="text-2xl font-black font-fun tracking-wide" id="landingTitle1">NHÓM LION</h3>
+          <p class="text-xs font-bold text-amber-100 mt-1">Dũng Cảm & Tự Tin</p>
+        </div>
+
+        <!-- Eagle -->
+        <div onclick="selectRole('group_2')" class="cursor-pointer group relative bg-gradient-to-b from-blue-500 to-indigo-600 rounded-3xl p-5 sm:p-6 text-white text-center shadow-game-blue border-4 border-blue-200 transition-all hover:-translate-y-1 active:translate-y-1">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl mb-3 group-hover:scale-110 transition shadow-inner">🦅</div>
+          <span class="text-xs uppercase tracking-wider font-extrabold bg-white/25 px-3 py-0.5 rounded-full inline-block mb-1">IPAD SỐ 2</span>
+          <h3 class="text-2xl font-black font-fun tracking-wide" id="landingTitle2">NHÓM EAGLE</h3>
+          <p class="text-xs font-bold text-blue-100 mt-1">Nhanh Nhẹn & Quyết Thắng</p>
+        </div>
+
+        <!-- Dolphin -->
+        <div onclick="selectRole('group_3')" class="cursor-pointer group relative bg-gradient-to-b from-cyan-500 to-teal-600 rounded-3xl p-5 sm:p-6 text-white text-center shadow-game-green border-4 border-cyan-200 transition-all hover:-translate-y-1 active:translate-y-1">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl mb-3 group-hover:scale-110 transition shadow-inner">🐬</div>
+          <span class="text-xs uppercase tracking-wider font-extrabold bg-white/25 px-3 py-0.5 rounded-full inline-block mb-1">IPAD SỐ 3</span>
+          <h3 class="text-2xl font-black font-fun tracking-wide" id="landingTitle3">NHÓM DOLPHIN</h3>
+          <p class="text-xs font-bold text-cyan-100 mt-1">Thông Minh & Đoàn Kết</p>
+        </div>
+
+        <!-- Kangaroo -->
+        <div onclick="selectRole('group_4')" class="cursor-pointer group relative bg-gradient-to-b from-rose-500 to-pink-600 rounded-3xl p-5 sm:p-6 text-white text-center shadow-game-rose border-4 border-rose-200 transition-all hover:-translate-y-1 active:translate-y-1">
+          <div class="w-20 h-20 mx-auto rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl mb-3 group-hover:scale-110 transition shadow-inner">🦘</div>
+          <span class="text-xs uppercase tracking-wider font-extrabold bg-white/25 px-3 py-0.5 rounded-full inline-block mb-1">IPAD SỐ 4</span>
+          <h3 class="text-2xl font-black font-fun tracking-wide" id="landingTitle4">NHÓM KANGAROO</h3>
+          <p class="text-xs font-bold text-pink-100 mt-1">Bứt Phá & Kiên Cường</p>
+        </div>
+      </div>
+
+      <button onclick="openPinModal()" class="btn-3d px-8 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-3xl font-fun font-black text-lg flex items-center gap-3 shadow-lg shadow-purple-300/40">
+        <i class="fa-solid fa-lock text-yellow-300"></i>
+        <span>Vào Màn Hình Giáo Viên (Mã PIN: 12345)</span>
+      </button>
+    </section>
+
+    <!-- ================= 1. SCREEN: IPAD HỌC SINH ================= -->
+    <section id="viewStudent" class="hidden flex flex-col gap-4">
+      
+      <!-- Banner Nhóm & Tổng Điểm -->
+      <div id="studentGroupBanner" class="relative rounded-3xl p-4 sm:p-6 text-white shadow-card-soft overflow-hidden border-4 border-white">
+        <div class="absolute -right-6 -bottom-8 text-9xl opacity-15 select-none pointer-events-none" id="bgDecorEmoji">🦁</div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-4 text-center sm:text-left">
+            <div id="studentAvatarBox" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/25 backdrop-blur-md border-2 border-white/40 flex items-center justify-center text-4xl sm:text-5xl shadow-md">
+              🦁
+            </div>
+            <div>
+              <div class="flex items-center justify-center sm:justify-start gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-black/20 text-white/90 text-xs font-black uppercase tracking-wider">
+                  BẢNG ĐIỂM IPAD
+                </span>
+                <span class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full" id="studentTaskNameDisplay">Nhiệm vụ 1</span>
+              </div>
+              <h2 id="studentGroupNameHeader" class="text-2xl sm:text-4xl font-black font-fun tracking-wide drop-shadow-md">
+                NHÓM LION
+              </h2>
+              <div class="flex items-center gap-2 text-xs font-extrabold text-amber-200 mt-1">
+                <span>Điểm thưởng nhóm riêng: <b id="studentGroupBonusPoints" class="text-white text-sm">0</b>đ</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-black/25 backdrop-blur-md border-2 border-white/40 px-6 py-2.5 sm:py-3 rounded-2xl flex items-center gap-3 shadow-inner">
+            <div class="text-right">
+              <span class="text-[11px] font-black uppercase tracking-wider text-amber-200 block">TỔNG ĐIỂM NHÓM</span>
+              <span id="studentTotalGroupScore" class="text-3xl sm:text-5xl font-black font-fun leading-none tracking-tight text-white drop-shadow">0</span>
+            </div>
+            <div class="text-3xl sm:text-4xl">🌟</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danh Sách Thành Viên -->
+      <div class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-card-soft border-2 border-amber-100 flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-sm font-black">
+              1
+            </div>
+            <h3 class="font-black font-fun text-lg text-slate-800">
+              CHỌN BẠN CỘNG ĐIỂM CÁ NHÂN <span class="text-xs font-bold text-slate-400 font-body">(Điểm cá nhân sẽ cộng luôn vào nhóm)</span>
+            </h3>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button onclick="selectAllStudents(true)" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 font-extrabold text-xs active:scale-95 transition">
+              <i class="fa-solid fa-check-double mr-1"></i> Chọn tất cả
+            </button>
+            <button onclick="selectAllStudents(false)" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold text-xs active:scale-95 transition">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Bỏ chọn
+            </button>
+          </div>
+        </div>
+
+        <div id="studentListContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-1">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Chọn Điểm & Thao Tác -->
+      <div class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-card-soft border-2 border-amber-100 flex flex-col gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-black">
+              2
+            </div>
+            <h3 class="font-black font-fun text-lg text-slate-800">
+              CHỌN MỨC ĐIỂM CÔ THIẾT LẬP
+            </h3>
+          </div>
+          <div id="scoreLevelOptionsContainer" class="flex flex-wrap items-center gap-2.5">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <!-- Cộng điểm cá nhân -->
+          <button onclick="applyScoreChange(1)" class="btn-3d btn-3d-green w-full py-4 sm:py-5 px-6 rounded-3xl bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white font-fun font-black text-xl sm:text-2xl flex items-center justify-center gap-2 border-2 border-green-300">
+            <span class="text-3xl animate-bounce">⚡</span>
+            <span>CỘNG CÁ NHÂN ĐÃ CHỌN</span>
+            <span id="labelAddPointsPreview" class="text-lg font-bold bg-white/25 px-2.5 py-0.5 rounded-2xl">+1</span>
+          </button>
+
+          <!-- Trừ điểm cá nhân -->
+          <button onclick="applyScoreChange(-1)" class="btn-3d btn-3d-rose w-full py-4 sm:py-5 px-6 rounded-3xl bg-gradient-to-r from-rose-400 via-pink-500 to-orange-400 text-white font-fun font-black text-xl sm:text-2xl flex items-center justify-center gap-2 border-2 border-rose-300">
+            <span class="text-3xl">🌱</span>
+            <span>TRỪ CÁ NHÂN ĐÃ CHỌN</span>
+            <span id="labelSubPointsPreview" class="text-lg font-bold bg-white/25 px-2.5 py-0.5 rounded-2xl">-1</span>
+          </button>
+        </div>
+
+        <!-- CỘNG ĐIỂM RIÊNG CHO CẢ NHÓM -->
+        <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+          <button onclick="studentApplyGroupBonus(1)" class="btn-3d btn-3d-gold flex-1 w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white font-fun font-black text-lg flex items-center justify-center gap-2 border border-yellow-200">
+            <span class="text-2xl">🏆</span>
+            <span>CỘNG ĐIỂM CHO CẢ NHÓM (+<span id="labelGroupBonusPointsPreview">1</span>đ)</span>
+          </button>
+          <button onclick="studentApplyGroupBonus(-1)" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-fun font-bold text-sm active:scale-95 transition">
+            Trừ điểm nhóm (-<span id="labelGroupBonusSubPreview">1</span>đ)
+          </button>
+        </div>
+
+        <p class="text-center text-xs font-bold text-slate-400 mt-1">
+          💡 Khi cộng điểm nhóm: Chỉ tính vào kết quả chung của nhóm, không tính vào điểm cá nhân của từng bạn.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ================= 2. SCREEN: GIÁO VIÊN ================= -->
+    <section id="viewTeacher" class="hidden flex flex-col gap-5">
+      
+      <!-- Top Action Bar -->
+      <div class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-card-soft border-2 border-indigo-100 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl shadow-md shadow-indigo-300/50">
+            👩‍🏫
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black font-fun text-slate-800 leading-tight">
+              TRUNG TÂM ĐIỀU HÀNH CỦA CÔ
+            </h2>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs font-extrabold text-emerald-600">Supabase Cloud: Dự Án Thu Hoạch Sao Trực Tuyến</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnTeacherUndo" onclick="undoLastAction()" class="px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-800 font-fun font-bold text-sm flex items-center gap-1.5 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none">
+            <i class="fa-solid fa-arrow-rotate-left text-amber-600"></i>
+            <span>Hoàn Tác (Undo)</span>
+          </button>
+
+          <button onclick="openStudentManagerModal()" class="px-3.5 py-2 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-300 text-indigo-800 font-fun font-bold text-sm flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-user-group text-indigo-600"></i>
+            <span>Đổi Tên & Phân Nhóm</span>
+          </button>
+
+          <button onclick="openTasksModal()" class="px-3.5 py-2 rounded-2xl bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 text-blue-800 font-fun font-bold text-sm flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-list-check text-blue-600"></i>
+            <span>Quản Lý Nhiệm Vụ</span>
+          </button>
+
+          <button onclick="startGrandCeremony()" class="btn-3d btn-3d-gold px-5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-white font-fun font-black text-sm sm:text-base flex items-center gap-2 border border-yellow-200">
+            <i class="fa-solid fa-trophy text-yellow-200 animate-bounce"></i>
+            <span>TỔNG KẾT & VINH DANH</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Race Track -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-4 sm:p-6 text-white shadow-2xl border-4 border-amber-300 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl animate-spin">🏁</span>
+            <h3 class="text-lg sm:text-xl font-black font-fun tracking-wide text-amber-300">
+              ĐƯỜNG ĐUA TIẾN TRÌNH THỜI GIAN THỰC
+            </h3>
+          </div>
+          <div class="text-xs font-black bg-white/10 px-3 py-1 rounded-full border border-white/20" id="trackTaskName">
+            Nhiệm vụ 1: Vượt chướng ngại vật
+          </div>
+        </div>
+
+        <div id="raceTrackRows" class="space-y-3.5">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 4 Bảng Điều Khiển Từng Nhóm -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="teacherGroupGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= GRAND FINALE MODAL: VINH DANH ================= -->
+  <div id="viewCeremony" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-between p-4 sm:p-8 hidden overflow-y-auto">
+    <div class="text-center pt-2">
+      <div class="inline-block px-6 py-2 rounded-full bg-amber-400/20 border-2 border-amber-400 text-amber-300 text-sm sm:text-base font-black tracking-widest uppercase mb-2 animate-pulse">
+        🏆 TỔNG KẾT TIẾT HỌC 🏆
+      </div>
+      <h2 class="text-3xl sm:text-6xl font-black font-fun text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-rose-400 drop-shadow-lg">
+        VINH DANH NHÀ VÔ ĐỊCH
+      </h2>
+      <p class="text-sm font-bold text-slate-300 mt-1">Cả lớp cùng nhiệt liệt chúc mừng các cá nhân và tập thể xuất sắc nhất!</p>
+    </div>
+
+    <!-- Champions Display Section -->
+    <div class="w-full max-w-5xl my-auto py-6 flex flex-col gap-8">
+      
+      <!-- 01 NHÓM XUẤT SẮC NHẤT -->
+      <div class="relative bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-yellow-200 text-center transform hover:scale-[1.01] transition">
+        <div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 px-6 py-1 rounded-full font-black font-fun text-sm sm:text-base border-2 border-white shadow-lg uppercase">
+          ⭐ NHÓM VÔ ĐỊCH TOÀN NĂNG ⭐
+        </div>
+        <div class="text-6xl sm:text-8xl my-2 animate-bounce" id="ceremonyGroupEmoji">🦁</div>
+        <h3 class="text-3xl sm:text-5xl font-black font-fun tracking-wider drop-shadow-md uppercase" id="ceremonyGroupName">
+          NHÓM LION
+        </h3>
+        <p class="text-base sm:text-xl font-black text-yellow-200 mt-1">
+          Tổng điểm xuất sắc: <span id="ceremonyGroupScore" class="text-3xl sm:text-4xl text-white">0</span> điểm
+        </p>
+      </div>
+
+      <!-- 03 CÁ NHÂN XUẤT SẮC NHẤT -->
+      <div>
+        <h4 class="text-center text-xl sm:text-2xl font-black font-fun text-amber-300 uppercase tracking-wider mb-4">
+          🎖️ 03 CÁ NHÂN XUẤT SẮC NHẤT TIẾT HỌC 🎖️
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="ceremonyTop3Grid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Ceremony Footer -->
+    <div class="pb-4">
+      <button onclick="closeCeremony()" class="px-8 py-3 rounded-2xl bg-white/20 hover:bg-white/30 text-white font-fun font-black text-base border-2 border-white/40 active:scale-95 transition">
+        Đóng Màn Hình Vinh Danh
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CHỌN VAI TRÒ NHANH ================= -->
+  <div id="modalRole" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-amber-200 text-center animate-float">
+      <div class="text-4xl mb-2">🎮</div>
+      <h3 class="text-2xl font-black font-fun text-slate-800 mb-1">CHỌN THIẾT BỊ SỬ DỤNG</h3>
+      <p class="text-xs font-bold text-slate-400 mb-4">Chọn nhóm cho iPad này hoặc vào giao diện Cô giáo</p>
+
+      <div class="grid grid-cols-2 gap-2.5 mb-4" id="modalRoleGroupButtons">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <button onclick="closeModal('modalRole'); openPinModal();" class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl font-fun font-bold text-sm shadow-md mb-2 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-graduation-cap"></i> Vào Giao Diện Giáo Viên (Mã PIN: 12345)
+      </button>
+
+      <button onclick="closeModal('modalRole')" class="text-xs font-bold text-slate-400 hover:text-slate-600">
+        Đóng cửa sổ
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: MÃ PIN GIÁO VIÊN ================= -->
+  <div id="modalPin" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border-4 border-indigo-200 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-3xl mx-auto mb-3">
+        🔐
+      </div>
+      <h3 class="text-2xl font-black font-fun text-slate-800 mb-1">MẬT KHẨU CÔ GIÁO</h3>
+      <p class="text-xs font-bold text-slate-400 mb-4">Vui lòng nhập mã PIN bảo vệ (Mặc định: 12345)</p>
+
+      <input type="password" id="pinCodeInput" maxlength="6" placeholder="• • • • •" class="w-full text-center tracking-[0.5em] text-3xl font-black font-fun py-3 border-2 border-slate-200 focus:border-indigo-500 rounded-2xl outline-none mb-3 bg-slate-50">
+
+      <p id="pinErrorMessage" class="text-xs font-black text-rose-500 mb-3 hidden">
+        ❌ Mã PIN chưa đúng, cô vui lòng nhập lại nhé!
+      </p>
+
+      <div class="flex gap-2">
+        <button onclick="closeModal('modalPin')" class="w-1/2 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm">
+          Hủy
+        </button>
+        <button onclick="submitTeacherPin()" class="w-1/2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-fun font-bold text-sm shadow-md">
+          Xác Nhận
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: QUẢN LÝ HỌC SINH & NHÓM ================= -->
+  <div id="modalStudents" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl border-4 border-amber-200 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-xl font-black font-fun text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-user-gear text-amber-500"></i> QUẢN LÝ HỌC SINH & TÊN NHÓM
+          </h3>
+          <p class="text-xs text-slate-400 font-bold">Cô có thể đổi tên nhóm, sửa tên học sinh và chuyển nhóm trực tiếp</p>
+        </div>
+        <button onclick="closeModal('modalStudents')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold">✕</button>
+      </div>
+
+      <div class="py-3 flex-1 overflow-y-auto space-y-4">
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <span class="text-xs font-black text-slate-500 uppercase block mb-2">Tên & Biểu Tượng 4 Nhóm:</span>
+          <div class="grid grid-cols-2 gap-2" id="groupRenameInputs">
+            <!-- Dynamic inputs -->
+          </div>
+        </div>
+
+        <div class="flex gap-2 bg-amber-50/70 p-3 rounded-2xl border border-amber-200 items-center">
+          <input type="text" id="newStudentNameInput" placeholder="Nhập tên học sinh mới..." class="flex-1 px-3 py-2 text-xs sm:text-sm font-bold rounded-xl border border-amber-200 focus:outline-none focus:border-amber-500 bg-white">
+          <select id="newStudentGroupSelect" class="px-2 py-2 text-xs font-bold rounded-xl border border-amber-200 bg-white">
+            <!-- Render options -->
+          </select>
+          <button onclick="createNewStudent()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-fun font-bold text-xs shrink-0 shadow">
+            + Thêm
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden" id="studentManagementList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: QUẢN LÝ NHIỆM VỤ ================= -->
+  <div id="modalTasks" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border-4 border-blue-200 flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-xl font-black font-fun text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-blue-500"></i> QUẢN LÝ NHIỆM VỤ TIẾT HỌC
+        </h3>
+        <button onclick="closeModal('modalTasks')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold">✕</button>
+      </div>
+
+      <div class="py-4 space-y-3">
+        <div class="flex gap-2">
+          <input type="text" id="newTaskInput" placeholder="Ví dụ: Trạm 1: Khởi động..." class="flex-1 px-3 py-2 text-xs sm:text-sm font-bold rounded-xl border border-slate-200 focus:border-blue-500 outline-none">
+          <button onclick="addNewTask()" class="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-fun font-bold text-xs shrink-0 shadow">
+            + Thêm bài
+          </button>
+        </div>
+
+        <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="taskListContainer">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Popup -->
+  <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white px-5 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md text-sm font-black flex items-center gap-2 transform transition-all duration-300 opacity-0 pointer-events-none translate-y-4">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">Thông báo</span>
+  </div>
+
+  <!-- ================= CORE JAVASCRIPT ================= -->
+  <script>
+    /* ========================================================
+       1. CẤU HÌNH SUPABASE & DỮ LIỆU DỰ ÁN MỚI "THU HOẠCH SAO"
+       ======================================================== */
+    const SUPABASE_URL = 'https://xtfkhgljpswfoloogoiy.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable__3BxbxiDP9sJEtg3oNwEUA_IrO5_ZAJ';
+
+    // Bảng và phòng trên Supabase
+    const CLOUD_TABLE_NAME = 'class_race';
+    const CLOUD_ROOM_ID = 'phong_hoc_lop2';
+
+    // Tách riêng hoàn toàn bộ nhớ trình duyệt để không trùng link cũ
+    const STORAGE_KEY = 'thu_hoach_sao_data_v1';
+    const ROLE_KEY = 'thu_hoach_sao_role_v1';
+    const BROADCAST_CHANNEL_NAME = 'thu_hoach_sao_channel_v1';
+
+    let supabaseClient = null;
+    let realtimeChannel = null;
+
+    /* Dữ liệu 20 học sinh chuẩn xác kèm quỹ điểm nhóm riêng (groupBonus) */
+    const initialClassData = {
+      currentTask: 'Nhiệm vụ 1: Vượt chướng ngại vật',
+      tasks: [
+        'Nhiệm vụ 1: Vượt chướng ngại vật',
+        'Nhiệm vụ 2: Chinh phục thử thách',
+        'Nhiệm vụ 3: Về đích nhanh nhất'
+      ],
+      soundEnabled: true,
+      scoreLevels: [1, 2, 3, 5],
+      groups: {
+        1: { 
+          name: 'Nhóm Lion', 
+          emoji: '🦁', 
+          theme: 'amber', 
+          gradient: 'from-amber-400 to-orange-500', 
+          lightBg: 'bg-amber-50', 
+          borderColor: 'border-amber-400', 
+          textColor: 'text-amber-600',
+          trackColor: 'bg-gradient-to-r from-amber-400 to-orange-500',
+          groupBonus: 0 // Điểm nhóm riêng
+        },
+        2: { 
+          name: 'Nhóm Eagle', 
+          emoji: '🦅', 
+          theme: 'blue', 
+          gradient: 'from-blue-500 to-indigo-600', 
+          lightBg: 'bg-blue-50', 
+          borderColor: 'border-blue-400', 
+          textColor: 'text-blue-600',
+          trackColor: 'bg-gradient-to-r from-blue-400 to-indigo-500',
+          groupBonus: 0
+        },
+        3: { 
+          name: 'Nhóm Dolphin', 
+          emoji: '🐬', 
+          theme: 'cyan', 
+          gradient: 'from-cyan-500 to-teal-600', 
+          lightBg: 'bg-cyan-50', 
+          borderColor: 'border-cyan-400', 
+          textColor: 'text-teal-600',
+          trackColor: 'bg-gradient-to-r from-cyan-400 to-teal-500',
+          groupBonus: 0
+        },
+        4: { 
+          name: 'Nhóm Kangaroo', 
+          emoji: '🦘', 
+          theme: 'rose', 
+          gradient: 'from-rose-500 to-pink-600', 
+          lightBg: 'bg-rose-50', 
+          borderColor: 'border-rose-400', 
+          textColor: 'text-rose-600',
+          trackColor: 'bg-gradient-to-r from-rose-400 to-pink-500',
+          groupBonus: 0
+        }
+      },
+      students: [
+        // 1. Nhóm Lion (5 bạn)
+        { id: 'lion_1', name: 'BÙI GIA BẢO', group: 1, score: 0 },
+        { id: 'lion_2', name: 'NGUYỄN TRẦN KHẢ HÂN', group: 1, score: 0 },
+        { id: 'lion_3', name: 'NGỤY AN TUỆ', group: 1, score: 0 },
+        { id: 'lion_4', name: 'LÊ DƯƠNG UY VŨ', group: 1, score: 0 },
+        { id: 'lion_5', name: 'LƯU GIA VY', group: 1, score: 0 },
+
+        // 2. Nhóm Eagle (6 bạn)
+        { id: 'eagle_1', name: 'LÊ NGỌC TRÂM ANH', group: 2, score: 0 },
+        { id: 'eagle_2', name: 'NGUYỄN LÊ MINH ĐĂNG', group: 2, score: 0 },
+        { id: 'eagle_3', name: 'HOÀNG THIỆN ĐỨC', group: 2, score: 0 },
+        { id: 'eagle_4', name: 'PHẠM TRẦN NGỌC HÂN', group: 2, score: 0 },
+        { id: 'eagle_5', name: 'PHẠM HIỂU LAM', group: 2, score: 0 },
+        { id: 'eagle_6', name: 'NGÔ KỲ ĐÔNG NGHI', group: 2, score: 0 },
+
+        // 3. Nhóm Dolphin (4 bạn)
+        { id: 'dolphin_1', name: 'LƯU HOÀNG ANH', group: 3, score: 0 },
+        { id: 'dolphin_2', name: 'DƯƠNG QUANG KHẢI', group: 3, score: 0 },
+        { id: 'dolphin_3', name: 'NGUYỄN THƯỜNG PHÚC', group: 3, score: 0 },
+        { id: 'dolphin_4', name: 'NGUYỄN PHẠM MINH QUÂN', group: 3, score: 0 },
+
+        // 4. Nhóm Kangaroo (5 bạn)
+        { id: 'kanga_1', name: 'NGÔ MINH CHÂU', group: 4, score: 0 },
+        { id: 'kanga_2', name: 'LỤC NGỌC HÂN', group: 4, score: 0 },
+        { id: 'kanga_3', name: 'BÙI NGỌC MINH KHUÊ', group: 4, score: 0 },
+        { id: 'kanga_4', name: 'LÊ HỒNG SANG', group: 4, score: 0 },
+        { id: 'kanga_5', name: 'ĐINH GIA THÀNH', group: 4, score: 0 }
+      ],
+      history: []
+    };
+
+    let appState = JSON.parse(JSON.stringify(initialClassData));
+    let currentRole = null;
+    let selectedStudentIds = new Set();
+    let currentSelectedPoint = 1;
+
+    // Tổng điểm nhóm = Tổng điểm từng thành viên + Điểm thưởng nhóm riêng
+    function getGroupTotalScore(groupId) {
+      const studentSum = appState.students
+        .filter(s => s.group === groupId)
+        .reduce((sum, s) => sum + s.score, 0);
+      const bonus = (appState.groups[groupId] && appState.groups[groupId].groupBonus) || 0;
+      return studentSum + bonus;
+    }
+
+    /* ========================================================
+       2. REALTIME ENGINE TRỰC TUYẾN
+       ======================================================== */
+    let broadcastChannel = null;
+    try {
+      broadcastChannel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+      broadcastChannel.onmessage = (msg) => {
+        if (msg.data && msg.data.type === 'SYNC') {
+          appState = ensureDataIntegrity(msg.data.payload);
+          renderUI();
+        }
+      };
+    } catch (e) {}
+
+    window.addEventListener('storage', (event) => {
+      if (event.key === STORAGE_KEY && event.newValue) {
+        appState = ensureDataIntegrity(JSON.parse(event.newValue));
+        renderUI();
+      }
+    });
+
+    function ensureDataIntegrity(data) {
+      if (!data) return JSON.parse(JSON.stringify(initialClassData));
+      [1, 2, 3, 4].forEach(gId => {
+        if (data.groups && data.groups[gId]) {
+          if (typeof data.groups[gId].groupBonus !== 'number') {
+            data.groups[gId].groupBonus = 0;
+          }
+        }
+      });
+      return data;
+    }
+
+    async function initSupabase() {
+      try {
+        if (!window.supabase) return;
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Đọc dữ liệu từ bảng class_race trong dự án THU HOẠCH SAO
+        const { data } = await supabaseClient
+          .from(CLOUD_TABLE_NAME)
+          .select('state')
+          .eq('id', CLOUD_ROOM_ID)
+          .single();
+
+        if (data && data.state) {
+          appState = ensureDataIntegrity(data.state);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+          renderUI();
+        } else {
+          await supabaseClient
+            .from(CLOUD_TABLE_NAME)
+            .upsert({ id: CLOUD_ROOM_ID, state: appState });
+        }
+
+        if (realtimeChannel) realtimeChannel.unsubscribe();
+        realtimeChannel = supabaseClient
+          .channel(`public:${CLOUD_TABLE_NAME}:${CLOUD_ROOM_ID}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: CLOUD_TABLE_NAME, filter: `id=eq.${CLOUD_ROOM_ID}` },
+            (payload) => {
+              if (payload.new && payload.new.state) {
+                appState = ensureDataIntegrity(payload.new.state);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                renderUI();
+              }
+            }
+          )
+          .subscribe((status) => {
+            const isOnline = (status === 'SUBSCRIBED');
+            const dot = document.getElementById('navCloudDot');
+            const txt = document.getElementById('navCloudText');
+            if (dot && txt) {
+              dot.className = isOnline ? 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse' : 'w-2 h-2 rounded-full bg-amber-500';
+              txt.innerText = isOnline ? 'Đang đồng bộ trực tuyến (Thu Hoạch Sao)' : 'Đang kết nối lại...';
+            }
+          });
+
+      } catch (err) {
+        console.warn('Lỗi kết nối Supabase:', err);
+      }
+    }
+
+    async function saveAndBroadcast() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'SYNC', payload: appState });
+      }
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient
+            .from(CLOUD_TABLE_NAME)
+            .upsert({ id: CLOUD_ROOM_ID, state: appState, updated_at: new Date() });
+        } catch (e) {
+          console.warn('Supabase sync error:', e);
+        }
+      }
+    }
+
+    function loadInitialState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appState = ensureDataIntegrity(JSON.parse(saved));
+        } catch (e) {
+          appState = JSON.parse(JSON.stringify(initialClassData));
+        }
+      } else {
+        saveAndBroadcast();
+      }
+    }
+
+    /* ========================================================
+       3. HỆ THỐNG ÂM THANH WEB AUDIO API
+       ======================================================== */
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playCheerfulTing() {
+      if (!appState.soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const freqs = [659.25, 880, 1174.66];
+        freqs.forEach((freq, index) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + index * 0.08);
+
+          gain.gain.setValueAtTime(0, now + index * 0.08);
+          gain.gain.linearRampToValueAtTime(0.3, now + index * 0.08 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.08 + 0.35);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + index * 0.08);
+          osc.stop(now + index * 0.08 + 0.36);
+        });
+      } catch (e) {}
+    }
+
+    function playSoftTone() {
+      if (!appState.soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(392, now);
+        osc.frequency.exponentialRampToValueAtTime(329.63, now + 0.25);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } catch (e) {}
+    }
+
+    function playVictoryFanfare() {
+      if (!appState.soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const notes = [
+          { f: 523.25, t: 0.0, d: 0.15 },
+          { f: 523.25, t: 0.16, d: 0.15 },
+          { f: 523.25, t: 0.32, d: 0.15 },
+          { f: 659.25, t: 0.48, d: 0.4 },
+          { f: 783.99, t: 0.9, d: 0.6 }
+        ];
+        notes.forEach(n => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+
+          gain.gain.setValueAtTime(0, now + n.t);
+          gain.gain.linearRampToValueAtTime(0.35, now + n.t + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d + 0.05);
+        });
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      appState.soundEnabled = !appState.soundEnabled;
+      saveAndBroadcast();
+      renderUI();
+      showToast(appState.soundEnabled ? 'Đã bật âm thanh' : 'Đã tắt âm thanh', appState.soundEnabled ? '🔔' : '🔕');
+    }
+
+    /* ========================================================
+       4. ĐIỀU KHIỂN VAI TRÒ
+       ======================================================== */
+    function selectRole(role) {
+      currentRole = role;
+      localStorage.setItem(ROLE_KEY, role);
+      selectedStudentIds.clear();
+      renderUI();
+      closeModal('modalRole');
+      showToast(`Chuyển sang: ${getRoleDisplayName(role)}`, '🎮');
+    }
+
+    function getRoleDisplayName(role) {
+      if (!role) return 'Chọn thiết bị';
+      if (role === 'teacher') return 'Cô Giáo';
+      const gNum = role.split('_')[1];
+      const g = appState.groups[gNum];
+      return g ? `${g.name}` : `Nhóm ${gNum}`;
+    }
+
+    function getRoleEmoji(role) {
+      if (!role) return '🎮';
+      if (role === 'teacher') return '👩‍🏫';
+      const gNum = role.split('_')[1];
+      const g = appState.groups[gNum];
+      return g ? g.emoji : '🚀';
+    }
+
+    function openRoleModal() {
+      const container = document.getElementById('modalRoleGroupButtons');
+      container.innerHTML = '';
+      [1, 2, 3, 4].forEach(id => {
+        const g = appState.groups[id];
+        const btn = document.createElement('button');
+        btn.onclick = () => selectRole(`group_${id}`);
+        btn.className = `p-3 rounded-2xl bg-gradient-to-r ${g.gradient} text-white font-fun font-black text-sm flex items-center justify-center gap-2 shadow hover:opacity-90 active:scale-95 transition`;
+        btn.innerHTML = `<span>${g.emoji}</span> <span>${g.name}</span>`;
+        container.appendChild(btn);
+      });
+      document.getElementById('modalRole').classList.remove('hidden');
+    }
+
+    function openPinModal() {
+      const pinModal = document.getElementById('modalPin');
+      const pinInput = document.getElementById('pinCodeInput');
+      document.getElementById('pinErrorMessage').classList.add('hidden');
+      pinInput.value = '';
+      pinModal.classList.remove('hidden');
+      setTimeout(() => pinInput.focus(), 100);
+    }
+
+    function submitTeacherPin() {
+      const pin = document.getElementById('pinCodeInput').value.trim();
+      if (pin === '12345') {
+        closeModal('modalPin');
+        selectRole('teacher');
+      } else {
+        document.getElementById('pinErrorMessage').classList.remove('hidden');
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    /* ========================================================
+       5. RENDER CHUNG
+       ======================================================== */
+    function renderUI() {
+      document.getElementById('roleLabel').innerText = getRoleDisplayName(currentRole);
+      document.getElementById('roleBadgeEmoji').innerText = getRoleEmoji(currentRole);
+
+      const soundIcon = document.getElementById('soundIcon');
+      soundIcon.className = appState.soundEnabled ? 'fa-solid fa-volume-high text-amber-500' : 'fa-solid fa-volume-xmark text-slate-400';
+
+      [1, 2, 3, 4].forEach(id => {
+        const g = appState.groups[id];
+        const titleEl = document.getElementById(`landingTitle${id}`);
+        if (titleEl && g) titleEl.innerText = g.name.toUpperCase();
+      });
+
+      const viewWelcome = document.getElementById('viewRoleSelector');
+      const viewStudent = document.getElementById('viewStudent');
+      const viewTeacher = document.getElementById('viewTeacher');
+
+      viewWelcome.classList.add('hidden');
+      viewStudent.classList.add('hidden');
+      viewTeacher.classList.add('hidden');
+
+      if (!currentRole) {
+        viewWelcome.classList.remove('hidden');
+        return;
+      }
+
+      if (currentRole === 'teacher') {
+        viewTeacher.classList.remove('hidden');
+        renderTeacherScreen();
+      } else if (currentRole.startsWith('group_')) {
+        viewStudent.classList.remove('hidden');
+        renderStudentScreen();
+      }
+    }
+
+    /* ========================================================
+       6. RENDER IPAD HỌC SINH
+       ======================================================== */
+    function renderStudentScreen() {
+      const groupId = parseInt(currentRole.split('_')[1], 10);
+      const group = appState.groups[groupId];
+      if (!group) return;
+
+      const banner = document.getElementById('studentGroupBanner');
+      banner.className = `relative rounded-3xl p-4 sm:p-6 text-white shadow-card-soft overflow-hidden border-4 border-white bg-gradient-to-r ${group.gradient}`;
+      document.getElementById('studentAvatarBox').innerText = group.emoji;
+      document.getElementById('studentGroupNameHeader').innerText = group.name.toUpperCase();
+      document.getElementById('bgDecorEmoji').innerText = group.emoji;
+      document.getElementById('studentTaskNameDisplay').innerText = appState.currentTask;
+
+      // Điểm nhóm riêng
+      document.getElementById('studentGroupBonusPoints').innerText = group.groupBonus || 0;
+
+      // Tổng điểm = Cá nhân + Nhóm riêng
+      const totalScore = getGroupTotalScore(groupId);
+      const scoreDisplay = document.getElementById('studentTotalGroupScore');
+      if (scoreDisplay.innerText !== totalScore.toString()) {
+        scoreDisplay.innerText = totalScore;
+        scoreDisplay.classList.add('score-animate');
+        setTimeout(() => scoreDisplay.classList.remove('score-animate'), 400);
+      }
+
+      const groupStudents = appState.students.filter(s => s.group === groupId);
+      const studentContainer = document.getElementById('studentListContainer');
+      studentContainer.innerHTML = '';
+
+      groupStudents.forEach((student, index) => {
+        const isSelected = selectedStudentIds.has(student.id);
+        const card = document.createElement('div');
+        card.onclick = () => toggleStudentSelection(student.id);
+
+        card.className = `cursor-pointer rounded-2xl p-3 sm:p-3.5 border-2 transition-all flex flex-col items-center justify-between gap-1 text-center font-bold select-none active:scale-95 ${
+          isSelected 
+            ? 'card-selected' 
+            : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-sm'
+        }`;
+
+        card.innerHTML = `
+          <div class="relative">
+            <div class="w-12 h-12 rounded-2xl ${isSelected ? 'bg-amber-400 text-white' : 'bg-slate-100 text-slate-500'} flex items-center justify-center text-xl font-black shadow-inner transition">
+              ${isSelected ? '✓' : (index + 1)}
+            </div>
+            ${isSelected ? '<span class="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white"></span>' : ''}
+          </div>
+          <span class="text-xs sm:text-sm font-black font-fun tracking-tight uppercase leading-tight line-clamp-2 mt-1 ${isSelected ? 'text-amber-900' : 'text-slate-700'}">
+            ${student.name}
+          </span>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-black ${isSelected ? 'bg-amber-500 text-white' : 'bg-slate-100 text-amber-600'}">
+            ${student.score} đ
+          </span>
+        `;
+        studentContainer.appendChild(card);
+      });
+
+      const levelContainer = document.getElementById('scoreLevelOptionsContainer');
+      levelContainer.innerHTML = '';
+      appState.scoreLevels.forEach(lvl => {
+        const isLevelActive = currentSelectedPoint === lvl;
+        const btn = document.createElement('button');
+        btn.onclick = () => {
+          currentSelectedPoint = lvl;
+          renderStudentScreen();
+        };
+        btn.className = `px-4 py-2 rounded-2xl font-fun font-black text-sm sm:text-base transition-all active:scale-95 ${
+          isLevelActive 
+            ? 'bg-amber-500 text-white shadow-md ring-4 ring-amber-200 scale-105' 
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+        }`;
+        btn.innerText = `+${lvl} ĐIỂM`;
+        levelContainer.appendChild(btn);
+      });
+
+      document.getElementById('labelAddPointsPreview').innerText = `+${currentSelectedPoint}`;
+      document.getElementById('labelSubPointsPreview').innerText = `-${currentSelectedPoint}`;
+      document.getElementById('labelGroupBonusPointsPreview').innerText = `${currentSelectedPoint}`;
+      document.getElementById('labelGroupBonusSubPreview').innerText = `${currentSelectedPoint}`;
+    }
+
+    function toggleStudentSelection(id) {
+      if (selectedStudentIds.has(id)) {
+        selectedStudentIds.delete(id);
+      } else {
+        selectedStudentIds.add(id);
+      }
+      renderStudentScreen();
+    }
+
+    function selectAllStudents(selectAll) {
+      const groupId = parseInt(currentRole.split('_')[1], 10);
+      const groupStudents = appState.students.filter(s => s.group === groupId);
+      if (selectAll) {
+        groupStudents.forEach(s => selectedStudentIds.add(s.id));
+      } else {
+        selectedStudentIds.clear();
+      }
+      renderStudentScreen();
+    }
+
+    // 1. Cộng điểm cá nhân (Cá nhân tăng điểm -> Nhóm tăng theo)
+    function applyScoreChange(direction) {
+      if (selectedStudentIds.size === 0) {
+        showToast('👉 Chạm chọn ít nhất 1 bạn trước nhé!', '⚠️');
+        return;
+      }
+
+      const pointDelta = currentSelectedPoint * direction;
+      const historyEntry = {
+        timestamp: Date.now(),
+        type: 'SCORE_UPDATE',
+        changes: []
+      };
+
+      appState.students = appState.students.map(st => {
+        if (selectedStudentIds.has(st.id)) {
+          const oldScore = st.score;
+          const newScore = Math.max(0, oldScore + pointDelta);
+          historyEntry.changes.push({ id: st.id, oldScore, newScore });
+          return { ...st, score: newScore };
+        }
+        return st;
+      });
+
+      appState.history.push(historyEntry);
+      if (appState.history.length > 50) appState.history.shift();
+
+      if (direction > 0) {
+        playCheerfulTing();
+        triggerMiniSparkles();
+        showToast(`Tuyệt vời! +${currentSelectedPoint} điểm cho thành viên!`, '🎉');
+      } else {
+        playSoftTone();
+        showToast(`Đã trừ ${currentSelectedPoint} điểm!`, '🌱');
+      }
+
+      saveAndBroadcast();
+      renderUI();
+    }
+
+    // 2. Cộng điểm cả nhóm (Chỉ tăng điểm nhóm, KHÔNG chạm vào cá nhân)
+    function studentApplyGroupBonus(direction) {
+      const groupId = parseInt(currentRole.split('_')[1], 10);
+      const group = appState.groups[groupId];
+      if (!group) return;
+
+      const delta = currentSelectedPoint * direction;
+      const oldBonus = group.groupBonus || 0;
+      const newBonus = Math.max(0, oldBonus + delta);
+
+      appState.history.push({
+        timestamp: Date.now(),
+        type: 'GROUP_BONUS_ONLY',
+        groupId: groupId,
+        oldBonus: oldBonus,
+        newBonus: newBonus
+      });
+
+      group.groupBonus = newBonus;
+
+      if (direction > 0) {
+        playCheerfulTing();
+        triggerMiniSparkles();
+        showToast(`+${currentSelectedPoint} điểm cho cả ${group.name}!`, '🏆');
+      } else {
+        playSoftTone();
+        showToast(`Đã trừ ${currentSelectedPoint} điểm nhóm!`, '🌱');
+      }
+
+      saveAndBroadcast();
+      renderUI();
+    }
+
+    function triggerMiniSparkles() {
+      try {
+        confetti({
+          particleCount: 20,
+          spread: 45,
+          origin: { y: 0.8 },
+          colors: ['#FFD93D', '#6BCB77', '#4D96FF', '#FF6B81']
+        });
+      } catch (e) {}
+    }
+
+    /* ========================================================
+       7. RENDER GIAO DIỆN GIÁO VIÊN
+       ======================================================== */
+    function renderTeacherScreen() {
+      document.getElementById('trackTaskName').innerText = appState.currentTask;
+      document.getElementById('btnTeacherUndo').disabled = appState.history.length === 0;
+
+      // 1. Live Race Track
+      const trackContainer = document.getElementById('raceTrackRows');
+      trackContainer.innerHTML = '';
+
+      const groupTotals = [1, 2, 3, 4].map(id => {
+        const sum = getGroupTotalScore(id);
+        return { id, sum, group: appState.groups[id] };
+      });
+      const highestScore = Math.max(1, ...groupTotals.map(g => g.sum));
+
+      groupTotals.forEach(item => {
+        const percentage = Math.min(100, Math.max(8, Math.round((item.sum / (highestScore * 1.15)) * 100)));
+        const row = document.createElement('div');
+        row.className = 'space-y-1';
+        row.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-black">
+            <span class="flex items-center gap-1.5 font-fun text-sm text-white">
+              <span>${item.group.emoji}</span>
+              <span>${item.group.name.toUpperCase()}</span>
+            </span>
+            <span class="text-amber-300 font-fun text-base">${item.sum} điểm</span>
+          </div>
+          <div class="h-6 bg-slate-800/80 rounded-full p-1 border border-white/10 relative overflow-hidden flex items-center">
+            <div class="h-full rounded-full transition-all duration-500 ${item.group.trackColor} flex items-center justify-end pr-2 text-xs" style="width: ${percentage}%">
+              <span class="drop-shadow">${item.group.emoji}</span>
+            </div>
+          </div>
+        `;
+        trackContainer.appendChild(row);
+      });
+
+      // 2. 4 Group Control Cards
+      const gridContainer = document.getElementById('teacherGroupGrid');
+      gridContainer.innerHTML = '';
+
+      for (let gId = 1; gId <= 4; gId++) {
+        const group = appState.groups[gId];
+        const groupStudents = appState.students.filter(s => s.group === gId);
+        const studentSum = groupStudents.reduce((sum, s) => sum + s.score, 0);
+        const groupBonus = group.groupBonus || 0;
+        const total = studentSum + groupBonus;
+
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-3xl p-4 shadow-card-soft border-t-8 ${group.borderColor} border border-slate-100 flex flex-col justify-between`;
+
+        let studentRowsHtml = '';
+        groupStudents.forEach(st => {
+          studentRowsHtml += `
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-bold transition">
+              <span class="truncate max-w-[110px] text-slate-700 uppercase font-black">${st.name}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-amber-600 font-fun font-black text-sm">${st.score}đ</span>
+                <button onclick="teacherAdjustIndividualScore('${st.id}', 1)" class="w-6 h-6 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 flex items-center justify-center font-black active:scale-90" title="Cộng cá nhân">+</button>
+                <button onclick="teacherAdjustIndividualScore('${st.id}', -1)" class="w-6 h-6 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 flex items-center justify-center font-black active:scale-90" title="Trừ cá nhân">-</button>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">${group.emoji}</span>
+                <div>
+                  <h4 class="font-black font-fun text-slate-800 leading-none">${group.name.toUpperCase()}</h4>
+                  <span class="text-[10px] font-bold text-slate-400">Thưởng nhóm riêng: <b class="text-amber-600">${groupBonus}đ</b></span>
+                </div>
+              </div>
+              <span class="text-2xl font-black font-fun ${group.textColor}">${total}đ</span>
+            </div>
+            <div class="mt-2.5 space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              ${studentRowsHtml || '<p class="text-xs text-slate-400 italic">Chưa có học sinh</p>'}
+            </div>
+          </div>
+
+          <div class="mt-3 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500">Điểm nhóm riêng:</span>
+              <div class="flex gap-1.5">
+                <button onclick="teacherAdjustGroupBonusOnly(${gId}, 1)" class="px-2.5 py-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 font-fun font-black text-xs active:scale-95">+1 Nhóm</button>
+                <button onclick="teacherAdjustGroupBonusOnly(${gId}, -1)" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 font-fun font-black text-xs active:scale-95">-1 Nhóm</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-slate-400">Cộng đều các em:</span>
+              <div class="flex gap-1">
+                <button onclick="teacherAdjustGroupMembersScore(${gId}, 1)" class="px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px]">+1 từng bạn</button>
+                <button onclick="teacherAdjustGroupMembersScore(${gId}, -1)" class="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px]">-1 từng bạn</button>
+              </div>
+            </div>
+          </div>
+        `;
+        gridContainer.appendChild(card);
+      }
+    }
+
+    function teacherAdjustGroupBonusOnly(groupId, delta) {
+      const group = appState.groups[groupId];
+      if (!group) return;
+
+      const oldBonus = group.groupBonus || 0;
+      const newBonus = Math.max(0, oldBonus + delta);
+
+      appState.history.push({
+        timestamp: Date.now(),
+        type: 'GROUP_BONUS_ONLY',
+        groupId: groupId,
+        oldBonus: oldBonus,
+        newBonus: newBonus
+      });
+
+      group.groupBonus = newBonus;
+      if (delta > 0) playCheerfulTing(); else playSoftTone();
+      saveAndBroadcast();
+      renderUI();
+      showToast(`${delta > 0 ? '+1' : '-1'} điểm nhóm riêng cho ${group.name}`, '⚡');
+    }
+
+    function teacherAdjustGroupMembersScore(groupId, delta) {
+      const members = appState.students.filter(s => s.group === groupId);
+      if (members.length === 0) return;
+
+      const record = { timestamp: Date.now(), type: 'GROUP_CHANGE', changes: [] };
+      appState.students = appState.students.map(st => {
+        if (st.group === groupId) {
+          const oldScore = st.score;
+          const newScore = Math.max(0, oldScore + delta);
+          record.changes.push({ id: st.id, oldScore, newScore });
+          return { ...st, score: newScore };
+        }
+        return st;
+      });
+
+      appState.history.push(record);
+      if (delta > 0) playCheerfulTing(); else playSoftTone();
+      saveAndBroadcast();
+      renderUI();
+      showToast(`${delta > 0 ? '+1' : '-1'} điểm cho từng bạn trong ${appState.groups[groupId].name}`, '⚡');
+    }
+
+    function teacherAdjustIndividualScore(studentId, delta) {
+      const student = appState.students.find(s => s.id === studentId);
+      if (!student) return;
+
+      const oldScore = student.score;
+      const newScore = Math.max(0, oldScore + delta);
+
+      appState.history.push({
+        timestamp: Date.now(),
+        type: 'INDIVIDUAL_CHANGE',
+        changes: [{ id: studentId, oldScore, newScore }]
+      });
+
+      student.score = newScore;
+      if (delta > 0) playCheerfulTing(); else playSoftTone();
+      saveAndBroadcast();
+      renderUI();
+    }
+
+    function undoLastAction() {
+      if (appState.history.length === 0) return;
+      const last = appState.history.pop();
+      if (!last) return;
+
+      if (last.type === 'GROUP_BONUS_ONLY') {
+        if (appState.groups[last.groupId]) {
+          appState.groups[last.groupId].groupBonus = last.oldBonus;
+        }
+      } else if (last.changes) {
+        last.changes.forEach(ch => {
+          const st = appState.students.find(s => s.id === ch.id);
+          if (st) st.score = ch.oldScore;
+        });
+      }
+
+      playSoftTone();
+      saveAndBroadcast();
+      renderUI();
+      showToast('Đã hoàn tác thao tác vừa rồi!', '↩️');
+    }
+
+    /* ========================================================
+       8. QUẢN LÝ HỌC SINH & NHÓM
+       ======================================================== */
+    function openStudentManagerModal() {
+      renderGroupNameInputs();
+      renderStudentManagerList();
+      renderGroupSelectForNewStudent();
+      document.getElementById('modalStudents').classList.remove('hidden');
+    }
+
+    function renderGroupNameInputs() {
+      const container = document.getElementById('groupRenameInputs');
+      container.innerHTML = '';
+      [1, 2, 3, 4].forEach(id => {
+        const g = appState.groups[id];
+        const box = document.createElement('div');
+        box.className = 'flex items-center gap-1.5 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm';
+        box.innerHTML = `
+          <input type="text" value="${g.emoji}" onchange="changeGroupEmoji(${id}, this.value)" class="w-8 text-center text-xl bg-transparent border-0 outline-none" title="Biểu tượng">
+          <input type="text" value="${g.name}" onchange="changeGroupName(${id}, this.value)" class="flex-1 text-xs font-black uppercase text-slate-800 bg-transparent border-0 outline-none focus:ring-1 focus:ring-amber-400 rounded px-1" title="Tên nhóm">
+        `;
+        container.appendChild(box);
+      });
+    }
+
+    function changeGroupName(id, name) {
+      if (name.trim() && appState.groups[id]) {
+        appState.groups[id].name = name.trim();
+        saveAndBroadcast();
+        renderUI();
+      }
+    }
+
+    function changeGroupEmoji(id, emoji) {
+      if (emoji.trim() && appState.groups[id]) {
+        appState.groups[id].emoji = emoji.trim();
+        saveAndBroadcast();
+        renderUI();
+      }
+    }
+
+    function renderGroupSelectForNewStudent() {
+      const select = document.getElementById('newStudentGroupSelect');
+      select.innerHTML = '';
+      [1, 2, 3, 4].forEach(id => {
+        const g = appState.groups[id];
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.innerText = `${g.name} ${g.emoji}`;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderStudentManagerList() {
+      const listContainer = document.getElementById('studentManagementList');
+      listContainer.innerHTML = '';
+
+      appState.students.forEach((st, idx) => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 px-3 flex items-center justify-between gap-2 hover:bg-slate-50 transition';
+
+        let groupOptions = '';
+        [1, 2, 3, 4].forEach(gId => {
+          const g = appState.groups[gId];
+          groupOptions += `<option value="${gId}" ${st.group === gId ? 'selected' : ''}>${g.name} ${g.emoji}</option>`;
+        });
+
+        row.innerHTML = `
+          <div class="flex items-center gap-2 flex-1">
+            <span class="w-6 text-xs text-slate-400 font-bold">${idx + 1}.</span>
+            <input type="text" value="${st.name}" onchange="updateStudentName('${st.id}', this.value)" class="font-black uppercase text-xs sm:text-sm text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-amber-500 focus:bg-white px-1.5 py-0.5 rounded outline-none flex-1">
+          </div>
+          <div class="flex items-center gap-2">
+            <select onchange="updateStudentGroup('${st.id}', this.value)" class="text-xs font-bold p-1 px-1.5 rounded-lg border border-slate-200 bg-white">
+              ${groupOptions}
+            </select>
+            <span class="text-xs font-black text-amber-600 w-10 text-right font-fun">${st.score}đ</span>
+            <button onclick="removeStudent('${st.id}')" class="text-slate-300 hover:text-rose-500 p-1 text-sm font-bold" title="Xóa học sinh">✕</button>
+          </div>
+        `;
+        listContainer.appendChild(row);
+      });
+    }
+
+    function updateStudentName(id, newName) {
+      const st = appState.students.find(s => s.id === id);
+      if (st && newName.trim()) {
+        st.name = newName.trim();
+        saveAndBroadcast();
+        renderUI();
+      }
+    }
+
+    function updateStudentGroup(id, newGroupId) {
+      const st = appState.students.find(s => s.id === id);
+      if (st) {
+        st.group = parseInt(newGroupId, 10);
+        saveAndBroadcast();
+        renderUI();
+      }
+    }
+
+    function createNewStudent() {
+      const nameInput = document.getElementById('newStudentNameInput');
+      const groupSelect = document.getElementById('newStudentGroupSelect');
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      const newId = 'hs_' + Date.now();
+      appState.students.push({
+        id: newId,
+        name: name,
+        group: parseInt(groupSelect.value, 10),
+        score: 0
+      });
+
+      nameInput.value = '';
+      saveAndBroadcast();
+      renderStudentManagerList();
+      renderUI();
+      showToast(`Đã thêm em: ${name}`, '👋');
+    }
+
+    function removeStudent(id) {
+      const st = appState.students.find(s => s.id === id);
+      if (confirm(`Cô có chắc chắn muốn xóa em "${st ? st.name : ''}" không?`)) {
+        appState.students = appState.students.filter(s => s.id !== id);
+        saveAndBroadcast();
+        renderStudentManagerList();
+        renderUI();
+      }
+    }
+
+    /* ========================================================
+       9. QUẢN LÝ NHIỆM VỤ
+       ======================================================== */
+    function openTasksModal() {
+      renderTasksList();
+      document.getElementById('modalTasks').classList.remove('hidden');
+    }
+
+    function renderTasksList() {
+      const container = document.getElementById('taskListContainer');
+      container.innerHTML = '';
+      appState.tasks.forEach(task => {
+        const isActive = appState.currentTask === task;
+        const item = document.createElement('div');
+        item.className = `p-3 rounded-2xl border flex items-center justify-between gap-2 ${
+          isActive ? 'bg-blue-50 border-blue-400 font-black' : 'bg-white border-slate-200'
+        }`;
+        item.innerHTML = `
+          <span class="text-xs sm:text-sm text-slate-800 truncate">${task}</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${
+              isActive 
+                ? '<span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full font-bold">Đang học</span>'
+                : `<button onclick="setCurrentTask('${task}')" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-blue-100 text-slate-700 text-xs font-bold">Chọn</button>`
+            }
+            <button onclick="removeTask('${task}')" class="text-slate-300 hover:text-rose-500 p-1 text-sm font-bold">✕</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function setCurrentTask(task) {
+      appState.currentTask = task;
+      saveAndBroadcast();
+      renderTasksList();
+      renderUI();
+      showToast(`Đã chọn: ${task}`, '🎯');
+    }
+
+    function addNewTask() {
+      const input = document.getElementById('newTaskInput');
+      const val = input.value.trim();
+      if (!val) return;
+      if (!appState.tasks.includes(val)) {
+        appState.tasks.push(val);
+        input.value = '';
+        saveAndBroadcast();
+        renderTasksList();
+      }
+    }
+
+    function removeTask(task) {
+      if (appState.tasks.length <= 1) {
+        showToast('Cần giữ ít nhất 1 nhiệm vụ!', '⚠️');
+        return;
+      }
+      appState.tasks = appState.tasks.filter(t => t !== task);
+      if (appState.currentTask === task) {
+        appState.currentTask = appState.tasks[0];
+      }
+      saveAndBroadcast();
+      renderTasksList();
+      renderUI();
+    }
+
+    /* ========================================================
+       10. GRAND CEREMONY: TỔNG KẾT & VINH DANH
+       ======================================================== */
+    let confettiTimer = null;
+
+    function startGrandCeremony() {
+      // 1. Nhóm Vô Địch (Dựa trên Tổng điểm = Cá nhân + Thưởng nhóm riêng)
+      const groupScores = [1, 2, 3, 4].map(id => {
+        const total = getGroupTotalScore(id);
+        return { id, total, group: appState.groups[id] };
+      });
+      groupScores.sort((a, b) => b.total - a.total);
+      const championGroup = groupScores[0];
+
+      document.getElementById('ceremonyGroupEmoji').innerText = championGroup.group.emoji;
+      document.getElementById('ceremonyGroupName').innerText = championGroup.group.name.toUpperCase();
+      document.getElementById('ceremonyGroupScore').innerText = championGroup.total;
+
+      // 2. 03 Cá Nhân Xuất Sắc Nhất (Chỉ tính riêng điểm cá nhân từng bạn)
+      const sortedStudents = [...appState.students].sort((a, b) => b.score - a.score);
+      const top3 = sortedStudents.slice(0, 3);
+      const top3Container = document.getElementById('ceremonyTop3Grid');
+      top3Container.innerHTML = '';
+
+      const medals = ['🥇', '🥈', '🥉'];
+      const rankTitles = ['Hạng Nhất (Vàng)', 'Hạng Nhì (Bạc)', 'Hạng Ba (Đồng)'];
+      const borderTheme = ['border-yellow-400 bg-yellow-400/10', 'border-slate-300 bg-slate-300/10', 'border-amber-600 bg-amber-600/10'];
+
+      top3.forEach((st, idx) => {
+        const groupInfo = appState.groups[st.group];
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-3xl border-2 ${borderTheme[idx]} backdrop-blur-md text-center flex flex-col items-center justify-between gap-1 shadow-lg transform hover:-translate-y-1 transition`;
+        card.innerHTML = `
+          <div class="text-4xl mb-1">${medals[idx]}</div>
+          <span class="text-xs uppercase font-extrabold text-amber-200 tracking-wider">${rankTitles[idx]}</span>
+          <h5 class="text-base sm:text-lg font-black font-fun uppercase text-white my-1 leading-tight">${st.name}</h5>
+          <span class="text-xs text-slate-300">${groupInfo ? groupInfo.name : ''} ${groupInfo ? groupInfo.emoji : ''}</span>
+          <div class="mt-2 px-3 py-1 rounded-xl bg-white/20 font-black font-fun text-sm text-yellow-300">
+            ${st.score} ĐIỂM
+          </div>
+        `;
+        top3Container.appendChild(card);
+      });
+
+      document.getElementById('viewCeremony').classList.remove('hidden');
+      playVictoryFanfare();
+      startContinuousConfetti();
+    }
+
+    function closeCeremony() {
+      document.getElementById('viewCeremony').classList.add('hidden');
+      if (confettiTimer) {
+        clearInterval(confettiTimer);
+        confettiTimer = null;
+      }
+    }
+
+    function startContinuousConfetti() {
+      if (confettiTimer) clearInterval(confettiTimer);
+      const duration = 8 * 1000;
+      const animationEnd = Date.now() + duration;
+
+      confettiTimer = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) {
+          clearInterval(confettiTimer);
+          confettiTimer = null;
+          return;
+        }
+        try {
+          confetti({
+            particleCount: 40,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#FFD93D', '#FF8400', '#FF6B81', '#4D96FF', '#6BCB77']
+          });
+          confetti({
+            particleCount: 40,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#FFD93D', '#FF8400', '#FF6B81', '#4D96FF', '#6BCB77']
+          });
+        } catch (e) {}
+      }, 400);
+    }
+
+    /* ========================================================
+       11. TOAST HELPER
+       ======================================================== */
+    let toastTimeout = null;
+    function showToast(message, icon = '✨') {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastIcon').innerText = icon;
+      document.getElementById('toastMessage').innerText = message;
+
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      }, 2500);
+    }
+
+    /* ========================================================
+       12. KHỞI CHẠY ỨNG DỤNG
+       ======================================================== */
+    window.onload = function() {
+      loadInitialState();
+      const savedRole = localStorage.getItem(ROLE_KEY);
+      currentRole = savedRole || null;
+      renderUI();
+      initSupabase();
+    };
+  </script>
+</body>
+</html>
